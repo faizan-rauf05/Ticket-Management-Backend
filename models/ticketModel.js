@@ -15,7 +15,7 @@ const ticketSchema = new mongoose.Schema({
     required: true,
   },
   noOfTickets: {
-    type: String,
+    type: Number,
     required: true,
   },
   departureDate: {

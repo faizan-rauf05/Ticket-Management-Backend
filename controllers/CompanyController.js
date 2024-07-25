@@ -1,4 +1,6 @@
 import { TicketModel } from "../models/ticketModel.js";
+import { CompanyModel } from "../models/companyModel.js";
+import bcrypt from "bcrypt";
 
 export const createTicket = async (req, res) => {
   const {
@@ -74,8 +76,9 @@ export const createTicket = async (req, res) => {
 // Get Tickets
 
 export const getTickets = async (req, res) => {
+  const companyId = req.params.id;
   try {
-    const tickets = await TicketModel.find({});
+    const tickets = await TicketModel.find({ companyId });
     if (!tickets) {
       return res
         .status(404)
@@ -114,6 +117,7 @@ export const updateTicket = async (req, res) => {
     description,
     departureDate,
     arrivalDate,
+    companyId,
   } = req.body;
 
   try {
@@ -136,11 +140,11 @@ export const updateTicket = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Ticket not found" });
     }
-
+    const remainingTickets = await TicketModel.find({ companyId });
     res.status(200).json({
       success: true,
       message: "Ticket updated successfully",
-      data: updatedTicket,
+      remainingTickets,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Internal server error" });
@@ -150,14 +154,70 @@ export const updateTicket = async (req, res) => {
 // Delete Ticket
 
 export const deleteTicket = async (req, res) => {
-  const { id } = req.params;
+  const { id, companyId } = req.params;
   try {
     const deleteTicket = await TicketModel.findByIdAndDelete(id);
-    if(!deleteTicket){
-      res.status(404).json({status:"fail", message : "Ticket not found"});
+    if (!deleteTicket) {
+      res.status(404).json({ status: "fail", message: "Ticket not found" });
     }
-    const remainingTickets = await TicketModel.find();
-    console.log(remainingTickets)
-    res.status(200).json({status:"success", message:"Ticket deleted", remainingTickets})
-  } catch (error) {}
+    const remainingTickets = await TicketModel.find({ companyId });
+    res
+      .status(200)
+      .json({ status: "success", message: "Ticket deleted successfully", remainingTickets });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// Update Company Profile
+
+export const updateCompanyProfile = async (req, res) => {
+  const { companyName, country, province, email } = req.body;
+  const { id } = req.params;
+  try {
+    const updatedProfile = await CompanyModel.findByIdAndUpdate(
+      id,
+      {
+        companyName,
+        country,
+        province,
+        email,
+      },
+      { new: true }
+    );
+    if (!updatedProfile) {
+      return res
+        .status(404)
+        .json({ success: "false", message: "Profile not found" });
+    }
+    res.status(200).json({
+      success: "true",
+      message: "Profile updated successfully",
+      updatedProfile,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, message: "Internal server error" });
+  }
+};
+
+// Update Password
+
+export const updateCompanyPassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  const {id} = req.params;
+  try {
+    const user  = await CompanyModel.findOne({_id:id});
+    const verifyPassword = await bcrypt.compare(oldPassword, user.password);
+    if(!verifyPassword){
+      return res.status(404).json({success:"false", message:"Password not match"});
+    }
+    const hashNewPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashNewPassword;
+    await user.save();
+    res.status(200).json({success:true, message:"Password changed successfully"});
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Internal server error" });
+    console.log(error)
+  }
 };

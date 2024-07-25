@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { CompanyModel } from "../models/companyModel.js";
 
+// Register 
+
 export const register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
@@ -75,6 +77,7 @@ export const login = async (req, res) => {
   }
 };
 
+// Logout 
 export const logout = (req, res) => {
   try {
     res.clearCookie("token");

@@ -9,6 +9,8 @@ import passport from './passport-setup.js';
 import googleAuth from "./routes/googleAuth.js";
 import session from 'express-session';
 import CompanyRoutes from "./routes/companyRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+
 dotenv.config();
 const app = express();
 
@@ -36,6 +38,7 @@ app.use(cors({
 app.use('/api/auth', AuthRoutes);
 app.use('/api/admin', AdminRoutes);
 app.use('/api/company', CompanyRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/auth', googleAuth);
 
 app.listen(process.env.PORT,()=>{
