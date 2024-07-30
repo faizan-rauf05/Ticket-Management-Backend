@@ -2,6 +2,9 @@ import { UserModel } from "../models/userModel.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { CompanyModel } from "../models/companyModel.js";
+import axios from "axios";
+
+const SECRET_KEY = "6LcqQxgqAAAAANxJxeITsNFZ7i4qaD1aMj7DrAB-";
 
 // Register 
 
@@ -17,7 +20,6 @@ export const register = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-
     const newUser = new UserModel({
       name,
       email,
@@ -36,44 +38,48 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password, loginType } = req.body;
+    const { email, password, loginType, reCaptcha } = req.body;
 
-    if(!email || !password || !loginType){
-      return res.status(400).json({success:false, message:"All the fields are required"});
+    if (!email || !password || !loginType || !reCaptcha) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
     }
 
-    if(loginType == "user" || loginType == "admin" ){
-      var user = await UserModel.findOne({ email });
-    }else{
-      var user = await CompanyModel.findOne({email});
+    const recaptchaResponse = await axios.post(
+      `https://www.google.com/recaptcha/api/siteverify?secret=${SECRET_KEY}&response=${reCaptcha}`
+    );
+
+    if (!recaptchaResponse.data.success) {
+      return res.status(400).json({ success: false, message: "reCAPTCHA verification failed" });
+    }
+
+    let user;
+    if (loginType === "user" || loginType === "admin") {
+      user = await UserModel.findOne({ email });
+    } else {
+      user = await CompanyModel.findOne({ email });
     }
 
     if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Invalid email or password" });
+      return res.status(404).json({ success: false, message: "Invalid email or password" });
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Invalid username or password" });
+      return res.status(404).json({ success: false, message: "Invalid email or password" });
     }
 
-    // Token Generation
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+
     res.cookie("token", token, {
       httpOnly: true,
       secure: false,
       maxAge: 24 * 60 * 60 * 1000,
     });
-    res
-      .status(200)
-      .json({ success: true, message: "Loggedin Successfully", user, token });
+
+    return res.status(200).json({ success: true, message: "Logged in successfully", user, token });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Internal server error" });
-    console.log(error);
+    console.error(error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };
 
