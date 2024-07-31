@@ -64,7 +64,6 @@ export const addItemsToCart = async (req, res) => {
       await existedItem.save();
       const originalTicket = await TicketModel.findById(ticketId);
       if (originalTicket) {
-        originalTicket.noOfTickets -= quantity;
         await originalTicket.save();
       }
       return res
@@ -84,7 +83,6 @@ export const addItemsToCart = async (req, res) => {
       await cartItem.save();
       const originalTicket = await TicketModel.findById(ticketId);
       if (originalTicket) {
-        originalTicket.noOfTickets -= quantity;
         await originalTicket.save();
       }
     }
@@ -233,7 +231,7 @@ export const updatePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
   const { id } = req.params;
   try {
-    if (!oldPassword || newPassword) {
+    if (!oldPassword || !newPassword) {
       return res
         .status(404)
         .json({ success: "false", message: "Please fill all fields" });
@@ -257,11 +255,17 @@ export const updatePassword = async (req, res) => {
   }
 };
 
+// Search Items 
+
 export const searchItems = async (req, res) => {
   const { departure, arrival } = req.query;
   const searchTickets = await TicketModel.find({
-    departurePlace: departure,
-    arrivalPlace: arrival,
+    $expr: {
+      $and: [
+        { $eq: [{ $toLower: "$departurePlace" }, departure.toLowerCase()] },
+        { $eq: [{ $toLower: "$arrivalPlace" }, arrival.toLowerCase()] }
+      ]
+    }
   });
   if (!searchTickets) {
     return res

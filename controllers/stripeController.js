@@ -2,11 +2,13 @@ import Stripe from "stripe";
 const stripe = new Stripe(
   "sk_test_51PhnyARr4CnxscyikkHdwqCZFH9N4BnYGB6SIwgVMqoZgRwFUeIaFKwzbMJkhssfCZQ7qd3oJZ3JiISheJfgJWyk001enpXEy0"
 );
-let endpointSecret="whsec_57eece98f62694bf5652185dc53a1456142ff079d5093ed4136379bf98e0c7aa";
+let endpointSecret =
+  "whsec_57eece98f62694bf5652185dc53a1456142ff079d5093ed4136379bf98e0c7aa";
 import { SalesModel } from "../models/salesModel.js";
+import { TicketModel } from "../models/ticketModel.js";
 
 export const stripePayment = async (req, res) => {
-  const { products , userId } = req.body;
+  const { products, userId } = req.body;
 
   const lineItems = products.map((product) => ({
     price_data: {
@@ -14,7 +16,7 @@ export const stripePayment = async (req, res) => {
       product_data: {
         name: product.departurePlace,
       },
-      unit_amount: Math.round(product.totalPrice * 100)
+      unit_amount: Math.round(product.totalPrice * 100),
     },
     quantity: product.quantity,
   }));
@@ -27,12 +29,14 @@ export const stripePayment = async (req, res) => {
     cancel_url: "http://localhost:5173/cancel",
     metadata: {
       userId: userId,
-      products: JSON.stringify(products)
-    }
+      products: JSON.stringify(products),
+    },
   });
 
   res.json({ id: session.id });
 };
+
+//Web hook
 
 export const afterStripe = async (req, response) => {
   const sig = req.headers["stripe-signature"];
@@ -40,7 +44,6 @@ export const afterStripe = async (req, response) => {
   let eventType;
   let data;
   if (endpointSecret) {
-
     try {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
@@ -58,25 +61,36 @@ export const afterStripe = async (req, response) => {
     const session = data;
     const products = JSON.parse(session.metadata.products);
     await updateProductPaymentStatus(products);
-    console.log("Checkout session completeddddddd")
   }
-
-  // response.json({ received: true });
 };
 
 const updateProductPaymentStatus = async (products) => {
-  console.log("products",products);
   for (const product of products) {
     try {
-      // Find the product in the salesModel by some identifier (e.g., product ID)
       const updatedProduct = await SalesModel.findOneAndUpdate(
-        { _id: product._id }, // Use the appropriate field to identify the product
+        { _id: product._id },
         { $set: { "payment.status": "paid" } },
         { new: true }
       );
 
+      const updatedQuantity = await TicketModel.findOneAndUpdate(
+        { _id: product.ticketId },
+        {
+          $inc: { noOfTickets: -product.quantity },
+        },
+        { new: true }
+      );
+
+      if (updatedQuantity) {
+        console.log(`Updated quantity for product ID: ${product._id}`);
+      } else {
+        console.log(`Product not found with ID: ${product._id}`);
+      }
+
       if (updatedProduct) {
-        console.log(`Updated product payment status to 'paid' for product ID: ${product._id}`);
+        console.log(
+          `Updated product payment status to 'paid' for product ID: ${product._id}`
+        );
       } else {
         console.log(`Product not found with ID: ${product._id}`);
       }
