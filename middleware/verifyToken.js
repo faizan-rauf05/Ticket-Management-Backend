@@ -13,12 +13,12 @@ export const isAdmin = async (req, res, next) => {
     const user = await UserModel.findById(decoded.userId);
 
     if (!user) {
-      return res.status(401).json({ message: "User not found" });
+      return res.status(401).json({ message: "Unauthorized :User not found" });
     }
     if (user.role !== "admin") {
       return res
         .status(403)
-        .json({ message: "Unauthorized : User is not an admin" });
+        .json({ message: "Forbidden : User is not an admin" });
     }
     req.user = user;
     console.log(user);
