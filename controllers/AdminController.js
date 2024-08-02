@@ -126,15 +126,14 @@ export const deleteUser = async (req, res) => {
     const filteredUsers = remainingUsers.filter(
       (currUser) => currUser.role !== "admin"
     );
-    console.log(remainingUsers);
     if (!remainingUsers) {
       return res
         .status(404)
-        .json({ success: false, message: "Not any company found" });
+        .json({ success: false, message: "Not any user found" });
     }
     return res.status(200).json({
       success: true,
-      message: "Company deleted successfully",
+      message: "User deleted successfully",
       filteredUsers,
     });
   } catch (error) {
@@ -170,7 +169,6 @@ export const deleteTicket = async (req, res) => {
 export const analytics = async (req, res) => {
   try {
     const fetchSalesData = await SalesModel.find();
-    console.log(fetchSalesData);
     const busData = fetchSalesData.filter(
       (currTicket) => currTicket.ticketType == "bus"
     );

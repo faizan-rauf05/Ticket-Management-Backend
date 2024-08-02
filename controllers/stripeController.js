@@ -64,6 +64,8 @@ export const afterStripe = async (req, response) => {
   }
 };
 
+// Update Status 
+
 const updateProductPaymentStatus = async (products) => {
   for (const product of products) {
     try {
@@ -80,20 +82,6 @@ const updateProductPaymentStatus = async (products) => {
         },
         { new: true }
       );
-
-      if (updatedQuantity) {
-        console.log(`Updated quantity for product ID: ${product._id}`);
-      } else {
-        console.log(`Product not found with ID: ${product._id}`);
-      }
-
-      if (updatedProduct) {
-        console.log(
-          `Updated product payment status to 'paid' for product ID: ${product._id}`
-        );
-      } else {
-        console.log(`Product not found with ID: ${product._id}`);
-      }
     } catch (error) {
       console.error(`Error updating product with ID: ${product.id}`, error);
     }
