@@ -195,7 +195,7 @@ export const getAllBlogs = async (req, res) => {
   const { city } = req.params;
   const arrivalPlace = city;
   try {
-    const getBlogs = await BlogModel.find({ city: arrivalPlace }); // Query the database
+    const getBlogs = await BlogModel.find({ city: arrivalPlace }); 
     if (!getBlogs || getBlogs.length === 0) {
       return res
         .status(404)
