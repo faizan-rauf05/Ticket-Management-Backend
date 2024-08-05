@@ -11,8 +11,6 @@ import { stripePayment } from "./controllers/stripeController.js";
 import bodyParser from "body-parser";
 import { afterStripe } from "./controllers/stripeController.js";
 import { realtimeFlightsData } from "./controllers/FlightsController.js";
-import path from "path";
-import { fileURLToPath } from 'url';
 
 dotenv.config();
 const app = express();
@@ -20,9 +18,6 @@ const app = express();
 // Databse Connection
 dbCon();
 
-// Get __dirname equivalent
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // app.use("/webhook");
 
@@ -45,11 +40,6 @@ app.use("/api/company", CompanyRoutes);
 app.use("/api/user", userRoutes);
 app.post("/api/create-checkout-session", stripePayment);
 app.get("/api/destinations", realtimeFlightsData);
-
-app.get("/", (req, res)=>{
-  app.use(express.static(path.resolve(__dirname, "frontend", "dist")));
-  res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
-});
 
 // Server Listening
 app.listen(process.env.PORT || 3000, () => {
