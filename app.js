@@ -33,6 +33,10 @@ app.use(cookieParser());
 app.use(cors());
 app.use(express.static("public"));
 
+
+app.get("/", (req, res)=>{
+  res.send("Server is running");
+})
 app.use("/api/auth", AuthRoutes);
 app.use("/api/admin", AdminRoutes);
 app.use("/api/company", CompanyRoutes);
