@@ -18,18 +18,21 @@ const app = express();
 // Databse Connection
 dbCon();
 
-// app.use("/webhook");
-
 app.post("/webhook", bodyParser.raw({ type: "application/json" }), afterStripe);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  })
-);
+// app.use(
+//   cors({
+//     origin: "http://localhost:5173",
+//     credentials: true,
+//   })
+// );
+app.use(cors({
+  origin: '*', // Allow all origins; adjust as needed
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.static("public"));
 
 
