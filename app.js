@@ -43,7 +43,7 @@ app.post("/api/create-checkout-session", stripePayment);
 app.get("/api/destinations", realtimeFlightsData);
 
 app.options('*', cors({
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173','https://66d0bd38ceea5c6c5183a76a--velvety-meringue-18bf9b.netlify.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
