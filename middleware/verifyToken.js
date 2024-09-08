@@ -21,7 +21,6 @@ export const isAdmin = async (req, res, next) => {
         .json({ message: "Forbidden : User is not an admin" });
     }
     req.user = user;
-    console.log(user);
     next();
   } catch (error) {}
 };
